@@ -6,7 +6,7 @@
             <div class="row">
                 <div class="span12">
                     <p class="copyright">
-                            Copyright © 2017. All Rights Reserved by 类微博.
+                            Copyright © 2017. All Rights Reserved by Mistake.
                     </p>
                 </div>
             </div>

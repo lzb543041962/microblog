@@ -157,13 +157,7 @@
                 <section class="widget">
                   <div class="support-widget">
                     <h3 class="title">小贴士</h3>
-                    <p class="intro">加入网宿，让梦想速不可挡 !</p>
-                    <p class="intro">想了解业内前沿的云计算技术 ？</p>
-                    <p class="intro">想要在拥有海量资源的上市公司工作 ？</p>
-                    <p class="intro">想要在成长路途上获得"一对一"的大神指导......来网宿，轻松get√ !</p>
-                    <p class="intro">关注【网宿科技招聘】微信公众平台,</p>
-                    <p class="intro">在[加入网宿]-[校招]中挑选职位申请。</p>
-                    <p><img src="../assets/qrcode.jpg"></p>
+                    <p class="intro">如果有任何问题，都可以发邮件和我联系，邮箱地址mistakelzb@gmail.com</p>
                   </div>
                 </section>
               </div>
@@ -192,7 +186,7 @@ import $ from 'jquery';
 export default {
   name: 'note-list',
   created() {
-    document.title = '微博大厅 网宿微博';
+    document.title = '微博大厅 类微博系统';
     var _this = this;
     for (let i = 1; i < 76; i++) {
       _this.faceList.push({

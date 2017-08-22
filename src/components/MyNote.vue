@@ -170,7 +170,7 @@ export default {
           type: 'success'
         });
         _this.userInfo = JSON.parse(response.data.data) ;
-        document.title = _this.userInfo.userName + '的个人主页 网宿微博';
+        document.title = _this.userInfo.userName + '的个人主页 类微博系统';
       }
       else {
         _this.userNoExist = true;

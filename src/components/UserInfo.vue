@@ -53,7 +53,7 @@ import left_bar from './LeftBar.vue'
 export default {
   name: 'user-info',
   created() {
-    document.title = '个人资料 网宿微博';
+    document.title = '个人资料 类微博系统';
   },
   mounted() {
     if (this.isLogin=='false') {

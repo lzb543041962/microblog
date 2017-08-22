@@ -52,7 +52,7 @@ import Fwcontent from './Fwcontent.vue'
 export default {
   name: 'note-list',
   created() {
-    document.title = '您的消息 网宿微博';
+    document.title = '您的消息 类微博系统';
   },
   mounted() {
     if (this.isLogin=='false') {

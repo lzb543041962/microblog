@@ -125,7 +125,7 @@ export default {
   },
   mounted() {
     this.getWeiboAll();
-    document.title = '主题 ' + _this.topic + ' 网宿微博';
+    document.title = '主题 ' + _this.topic + ' 类微博系统';
   },
   data () {
     var checkBlogContent = (rule, value, callback) => {

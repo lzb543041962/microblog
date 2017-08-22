@@ -31,7 +31,7 @@ import left_bar from './LeftBar.vue'
 export default {
   name: 'update-password',
   created() {
-    document.title = '修改密码 网宿微博';
+    document.title = '修改密码 类微博系统';
   },
   mounted() {
     if (this.isLogin=='false') {

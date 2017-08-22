@@ -93,7 +93,7 @@ import person from '../assets/person.png'
 export default {
   name: 'note-list',
   created() {
-    document.title = '我的收藏 网宿微博';
+    document.title = '我的收藏 类微博系统';
   },
   mounted() {
     if (this.isLogin=='false') {
