@@ -22,6 +22,7 @@
 <script>
 
 export default {
+  // 发表评论组件
   name: 'comment',
   created() {
     var _this = this;
@@ -33,6 +34,7 @@ export default {
     }
   },
   data () {
+    // 评论内容校验
     var checkCommentContent = (rule, value, callback) => {
       setTimeout(() => {
         if (value === '') {
@@ -71,6 +73,7 @@ export default {
       this.commentForm.commentContent += val;
       this.isFaceShow = false;
     },
+    // 发表评论方法
     postComment: function(formName) {
       var _this = this;
       if (_this.isLogin == 'true') {
@@ -105,13 +108,6 @@ export default {
                 });
               }
             })
-            .catch(function (response) {
-              _this.$message({
-                  showClose: true,
-                  type: 'error',
-                  message: response
-                })
-            });
           }
         })
       }

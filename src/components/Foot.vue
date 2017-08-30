@@ -18,6 +18,7 @@
 
 <script>
 export default {
+  // 页脚组件
   name: 'footer-wrapper',
   data () {
     return {

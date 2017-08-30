@@ -63,7 +63,7 @@
                     </el-breadcrumb-item>
                   </el-breadcrumb>
                 </div>
-                <article v-bind:id="'comment-' + item.weiboId" v-for="item in noteList" v-bind:key="item.weiboId">
+                <article v-bind:id="'comment-' + item.weiboId" v-for="item in noteList" v-bind:key="item.weiboId" v-loading.body="loading">
                   <div class="comment-meta">
                     <div class="avatar">
                       <router-link :to="{path:'/note',query: {id: item.userId}}">
@@ -157,7 +157,7 @@
                 <section class="widget">
                   <div class="support-widget">
                     <h3 class="title">小贴士</h3>
-                    <p class="intro">如果有任何问题，都可以发邮件和我联系，邮箱地址mistakelzb@gmail.com</p>
+                    <p class="intro">如有任何问题，请联系mistakelzb@gmail.com</p>
                   </div>
                 </section>
               </div>
@@ -184,10 +184,12 @@ import person from '../assets/person.png'
 import $ from 'jquery';
 
 export default {
+  // 微博大厅页面
   name: 'note-list',
   created() {
-    document.title = '微博大厅 类微博系统';
+    document.title = '微博大厅';
     var _this = this;
+    // 初始化表情
     for (let i = 1; i < 76; i++) {
       _this.faceList.push({
         name: i + '.gif',
@@ -196,9 +198,11 @@ export default {
     }
   },
   mounted() {
+    // 获取微博列表
     this.getWeiboAll();
   },
   data() {
+    // 微博正文校验
     var checkBlogContent = (rule, value, callback) => {
       if (value === '') {
         return callback(new Error('微博内容不能为空'));
@@ -219,11 +223,11 @@ export default {
       fwItem: {},
       faceList: [],
       isFaceShow: false,
-      imageUrl: 'http://wx3.sinaimg.cn/mw690/8235fbe6gy1fi3k0zfa5bj20y81f47wi.jpg',
       dialogVisible: false,
       dialogVisible2: false,
       dialogVisibleFw: false,
       page: 1,
+      rows: 10,
       attentionPage: 1,
       attentionFlag: false,
       noteList: [],
@@ -241,7 +245,9 @@ export default {
       },
       commentPage: [],
       file: null,
-      isLogin: localStorage.getItem('isLogin')
+      isLogin: localStorage.getItem('isLogin'),
+      weiboAdd: 0,
+      commentAdd: [],
     }
   },
   components: {
@@ -253,28 +259,34 @@ export default {
     'fw-form': Fwform
   },
   watch: {
+    // 全部微博、关注的人切换，初始化参数
     attentionFlag: function () {
       this.noteList = [];
       if (this.attentionFlag == true) {
         this.page = 1;
         this.addCommentFlag = false;
         this.addWeiboFlag = false;
+        this.weiboAdd = 0;
       }
       else {
         this.attentionPage = 1;
         this.addCommentFlag = false;
         this.addWeiboFlag = false;
+        this.weiboAdd = 0;
       }
     }
   },
   methods: {
+    // 获取图片
     getFile($event) {
       this.file = $event.target.files[0];
     },
+    // 点击转发按钮，存储原微博
     forward: function (item) {
       this.dialogVisibleFw = true;
       this.fwItem = item;
     },
+    // 获取微博列表
     getWeiboAll: function () {
       var _this = this;
       if (_this.attentionFlag == true) {
@@ -282,19 +294,23 @@ export default {
       }
       var data = {};
       var url = '';
-      if (_this.isLogin == 'true') {
+      if (_this.page==1) {
         data = {
           page: _this.page,
           rows: 10,
-          userId: localStorage.getItem('userId')
         };
-        url = _this.URL_PREFIX + '/weibo/front/weibo/getpageweibo';
       }
       else {
         data = {
-          page: _this.page,
-          rows: 10
+          page: 2,
+          rows: (_this.page-1)*10+_this.weiboAdd,
         };
+      }
+      if (_this.isLogin == 'true') {
+        data.userId = localStorage.getItem('userId');
+        url = _this.URL_PREFIX + '/weibo/front/weibo/getpageweibo';
+      }
+      else {
         url = _this.URL_PREFIX + '/weibo/front/weibo/getpageweiboNoUserName';
       }
 
@@ -311,8 +327,10 @@ export default {
           else {
             _this.addWeiboFlag = true;
           }
-          if (_this.page == 1) {
-            _this.noteList = parseData.rows;
+          if (parseData.rows.length > 10) {
+            for (var i = 0; i < 10; i++) {
+              _this.noteList.push(parseData.rows[i]);
+            }
             _this.page++;
           }
           else {
@@ -330,14 +348,8 @@ export default {
           });
         }
       })
-      .catch(function (response) {
-        _this.$message({
-            showClose: true,
-            type: 'error',
-            message: response
-          })
-      });
     },
+    // 获取关注的人的微博列表
     getWeiboAttentionPage: function () {
       var _this = this;
       if (_this.attentionFlag == false) {
@@ -347,8 +359,8 @@ export default {
         method: 'get',
         url: _this.URL_PREFIX + '/weibo/front/weibo/getWeiboAttentionPage',
         params: {
-          page: _this.attentionPage,
-          rows: 10,
+          page: 2,
+          rows: (_this.attentionPage-1)*10+_this.weiboAdd,
           userId: localStorage.getItem('userId')
         }
       }).then(function (response) {
@@ -357,15 +369,17 @@ export default {
           if (parseData.rows.length < 10) {
             _this.addWeiboFlag = false;
           }
-          if (_this.attentionPage == 1) {
-            _this.noteList = parseData.rows;
+          if (parseData.rows.length > 10) {
+            for (var i = 0; i < 10; i++) {
+              _this.noteList.push(parseData.rows[i]);
+            }
             _this.attentionPage++;
           }
           else {
             for (var i = 0; i < parseData.rows.length; i++) {
               _this.noteList.push(parseData.rows[i]);
-              _this.attentionPage++;
             }
+            _this.attentionPage++;
           }
         }
         else {
@@ -376,14 +390,8 @@ export default {
           });
         }
       })
-      .catch(function (response) {
-        _this.$message({
-            showClose: true,
-            type: 'error',
-            message: response
-          })
-      });
     },
+    // 删除微博
     delArticle: function (id) {
       var _this = this;
       _this.$ajax({
@@ -413,14 +421,8 @@ export default {
           });
         }
       })
-      .catch(function (response) {
-        _this.$message({
-            showClose: true,
-            type: 'error',
-            message: response
-          })
-      });
     },
+    // 收藏取消收藏方法
     addFavorite: function (item) {
       var _this = this;
       if (_this.isLogin == 'true') {
@@ -450,13 +452,6 @@ export default {
               });
             }
           })
-          .catch(function (response) {
-            _this.$message({
-                showClose: true,
-                type: 'error',
-                message: response
-              })
-          });
         }
         else {
           _this.$ajax({
@@ -484,13 +479,6 @@ export default {
               });
             }
           })
-          .catch(function (response) {
-            _this.$message({
-                showClose: true,
-                type: 'error',
-                message: response
-              })
-          });
         }
       }
       else {
@@ -501,6 +489,7 @@ export default {
         });
       }
     },
+    // 点赞取消点赞方法
     thumbUp: function (item) {
       var _this = this;
       if (_this.isLogin == 'true') {
@@ -530,13 +519,6 @@ export default {
               });
             }
           })
-          .catch(function (response) {
-            _this.$message({
-                showClose: true,
-                type: 'error',
-                message: response
-              })
-          });
         }
         else {
           _this.$ajax({
@@ -564,13 +546,6 @@ export default {
               });
             }
           })
-          .catch(function (response) {
-            _this.$message({
-                showClose: true,
-                type: 'error',
-                message: response
-              })
-          });
         }
       }
       else {
@@ -585,15 +560,16 @@ export default {
       this.form.desc += val;
       this.isFaceShow = false;
     },
+    // 加载更多评论
     loadmoreComments: function (item) {
       var _this = this;
       _this.$ajax({
         method: 'get',
         url: _this.URL_PREFIX + '/weibo/front/comment/getcomment',
         params: {
-          page: _this.commentPage[item.weiboId],
+          page: 2,
           weiboId: item.weiboId,
-          rows: 3
+          rows: (_this.commentPage[item.weiboId] - 1)*3 + _this.commentAdd[item.weiboId]
         }
       }).then(function (response) {
         if (response.data.code == 200) {
@@ -604,10 +580,18 @@ export default {
           else {
             _this.addCommentFlag = true;
           }
-          for (var i = 0; i < parsedata.rows.length; i++) {
-            _this.commentList.push(parsedata.rows[i]);
+          if (parsedata.rows.length > 3) {
+            for (var i = 0; i < 3; i++) {
+              _this.commentList.push(parsedata.rows[i]);
+            }
+            _this.commentPage[item.weiboId]++;
           }
-          _this.commentPage[item.weiboId]++;
+          else {
+            for (var i = 0; i < parsedata.rows.length; i++) {
+              _this.commentList.push(parsedata.rows[i]);
+            }
+            _this.commentPage[item.weiboId]++;
+          }
         }
         else {
           _this.$message({
@@ -617,20 +601,15 @@ export default {
           });
         }
       })
-      .catch(function (response) {
-        _this.$message({
-            showClose: true,
-            type: 'error',
-            message: response
-          })
-      });
     },
+    // 获取微博列表
     openComments: function (item) {
       if (item.open != false) {
         item.open = !item.open;
         var _this = this;
         if (!_this.commentPage[item.weiboId]) {
           _this.commentPage[item.weiboId] = 1;
+          _this.commentAdd[item.weiboId] = 0;
           _this.loadmoreComments(item);
         }
       }
@@ -638,14 +617,18 @@ export default {
         item.open = !item.open;
       }
     },
+    // 发表评论
     addComment: function (data, item) {
       this.commentList.unshift(data);
       this.addCommentFlag = true;
+      this.commentAdd[item.weiboId]++;
       item.weiboComment++;
     },
+    // 转发微博
     addforward: function (data, fwItem) {
       var _this = this;
       _this.addWeiboFlag = true;
+      _this.weiboAdd++;
       _this.dialogVisibleFw = false;
       for (var i = 0;i < _this.noteList.length;i++) {
         if (fwItem.weiboId == _this.noteList[i].weiboId) {
@@ -661,38 +644,23 @@ export default {
       }
       _this.noteList.unshift(data);
     },
-    confirmAt() {
-      this.dialogVisible = false;
-      for (var i = 0; i < this.multipleSelection.length; i++) {
-        this.form.desc += '@' + this.multipleSelection[i].name + ' ';
-      }
-      this.$refs.multipleTable.clearSelection();
-    },
+    // 生成主题格式
     confirmTheme() {
       this.form.desc = '#请在此输入话题#' + this.form.desc;
     },
-    toggleSelection(rows) {
-      if (rows) {
-        rows.forEach(row => {
-          this.$refs.multipleTable.toggleRowSelection(row);
-        });
-      } else {
-        this.$refs.multipleTable.clearSelection();
-      }
-    },
-    handleSelectionChange(val) {
-      this.multipleSelection = val;
-    },
+    // 发表微博
     submitForm(formName) {
       var _this = this;
       if (_this.isLogin == 'true') {
         _this.$refs[formName].validate((valid) => {
           if (valid) {
-            if (_this.form.desc != '') {
+            // 过滤正文只有空格的情况
+            if (_this.form.desc.trim() != '') {
               var content = _this.form.desc;
               var at = [];
               var theme = '';
 
+              // 过滤主题
               if (content[0] == '#') {
                 var end = 0;
                 for (var i = 1; i < content.length; i++) {
@@ -707,15 +675,22 @@ export default {
                 }
               }
 
+              // 过滤@
               for (var i = 0; content.indexOf('@') != -1; i++) {
                 var idx = content.indexOf('@');
                 var end = 0;
                 for (var j = idx; j < content.length; j++) {
+                  if (content[j] == '@') {
+                    idx = j;
+                  }
                   if (content[j] == ' ') {
-                    end = j;
-                    break;
+                    if (j!=idx+1) {
+                      end = j;
+                      break;
+                    }
                   }
                 }
+                console.log(idx+';'+end);
                 if (end == 0 || end == idx+1) {
                   break;
                 }
@@ -728,12 +703,13 @@ export default {
                 }
               }
 
+              // formData数据
               var formData = new FormData();
               formData.append('userId', localStorage.getItem('userId'));
               formData.append('file', _this.file);
               formData.append('weiboContent', content);
               formData.append('weiboAt', at.join('@'));
-              formData.append('weiboTopic', theme);
+              formData.append('weiboTopic', theme.trim());
 
               var config = {
                 headers: {
@@ -747,8 +723,8 @@ export default {
                     var parsedata = JSON.parse(response.data.data);
                     _this.noteList.unshift(parsedata);
                     _this.addWeiboFlag = true;
+                    _this.weiboAdd++;
                     if (_this.file != null) {
-                      _this.$refs.file.outerHTML = _this.$refs.file.outerHTML;
                       _this.file = null;
                     }
                     _this.form.desc = '';
@@ -761,15 +737,12 @@ export default {
                     });
                   }
                 })
-                .catch(function (response) {
-                  _this.$message({
-                      showClose: true,
-                      type: 'error',
-                      message: response
-                    })
-                });
             } else {
-              return false;
+              _this.$message({
+                showClose: true,
+                message: '微博不能为空',
+                type: 'error'
+              });
             }
           }
         })
@@ -782,6 +755,7 @@ export default {
         });
       }
     },
+    // 回到顶部
     toTop() {
       document.body.scrollTop = document.documentElement.scrollTop = 0;
     }

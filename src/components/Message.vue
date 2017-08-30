@@ -52,7 +52,7 @@ import Fwcontent from './Fwcontent.vue'
 export default {
   name: 'note-list',
   created() {
-    document.title = '您的消息 类微博系统';
+    document.title = '您的消息';
   },
   mounted() {
     if (this.isLogin=='false') {
@@ -109,13 +109,6 @@ export default {
             }
           }
         })
-        .catch(function (response) {
-          _this.$message({
-              showClose: true,
-              type: 'error',
-              message: response
-            })
-        });
       }
       else {
         _this.$message({
@@ -125,13 +118,6 @@ export default {
         });
       }
     })
-    .catch(function (response) {
-      _this.$message({
-          showClose: true,
-          type: 'error',
-          message: response
-        })
-    });
   },
   data () {
     return {
@@ -186,13 +172,6 @@ export default {
           })
         }
       })
-      .catch(function (response) {
-        _this.$message({
-            showClose: true,
-            type: 'error',
-            message: response
-          })
-      });
     },
   }
 }

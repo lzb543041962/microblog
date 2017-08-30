@@ -29,9 +29,10 @@ import foot_bar from './Foot.vue'
 import left_bar from './LeftBar.vue'
 
 export default {
+  // 修改密码页面
   name: 'update-password',
   created() {
-    document.title = '修改密码 类微博系统';
+    document.title = '修改密码';
   },
   mounted() {
     if (this.isLogin=='false') {
@@ -39,6 +40,7 @@ export default {
     }
   },
   data () {
+    // 校验密码
     var checkPass = (rule, value, callback) => {
       if (value === '') {
         return callback(new Error('请输入密码'));
@@ -76,6 +78,7 @@ export default {
     left_bar
   },
   methods: {
+    // 保存密码修改
     onSubmit: function(formName) {
       var _this = this;
       _this.$refs[formName].validate((valid) => {
@@ -108,17 +111,11 @@ export default {
               message: response.data.description,
               type: 'error'
             });
-          })
-          .catch(function (response) {
-            _this.$message({
-                showClose: true,
-                type: 'error',
-                message: response
-              })
           });
         }
       })
     },
+    // 重置表单
     reset(formName) {
       this.$refs[formName].resetFields();
     },

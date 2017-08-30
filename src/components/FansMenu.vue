@@ -38,11 +38,13 @@ import foot_bar from './Foot.vue'
 import left_bar from './LeftBar.vue'
 
 export default {
-  name: 'note-list',
+  // 粉丝列表页面
+  name: 'fans-list',
   created() {
-    document.title = '粉丝列表 类微博系统';
+    document.title = '粉丝列表';
   },
   mounted() {
+    // 初始化粉丝列表
     if (this.isLogin=='false') {
       this.$router.push({path: '/'});
     }
@@ -73,28 +75,11 @@ export default {
         });
       }
     })
-    .catch(function (response) {
-      _this.$message({
-          showClose: true,
-          type: 'error',
-          message: response
-        })
-    });
   },
   data () {
     return {
-      labelPosition: top,
-      searchQuery: '',
       page: 1,
       friendList: [],
-      form: {
-        desc: ''
-      },
-      rules: {
-        desc: [
-          { required: true, message: '请填写微博内容' }
-        ]
-      },
       isLogin: localStorage.getItem('isLogin')
     }
   },
@@ -104,6 +89,7 @@ export default {
     left_bar
   },
   methods: {
+    // 加载更多粉丝列表
     loadmore: function() {
       var _this = this;
       _this.page++;
@@ -134,13 +120,6 @@ export default {
           });
         }
       })
-      .catch(function (response) {
-        _this.$message({
-            showClose: true,
-            type: 'error',
-            message: response
-          })
-      });
     },
   }
 }

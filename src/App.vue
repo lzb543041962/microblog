@@ -8,6 +8,7 @@
 export default {
   name: 'app',
   created() {
+    // 设置登录注销时间为2小时
     var loginDate = new Date(localStorage.getItem('loginDate'));
     var nowDate = new Date();
     localStorage.setItem('messageUnRead', false);

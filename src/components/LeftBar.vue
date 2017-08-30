@@ -25,6 +25,7 @@
 
 <script>
 export default {
+  // 左侧菜单组件
   name: 'left-bar',
   data () {
     return {

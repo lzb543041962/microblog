@@ -71,7 +71,7 @@
           </div>
           </article>
           <el-row>
-            <el-col :span="24" class="page-foot" v-if="collectList.length!=0 && collectList.length%10==0">
+            <el-col :span="24" class="page-foot" v-if="(collectList.length!=0 && collectList.length%10==0) || delFlag == true">
               <a @click="loadmore" class="loadmore">点击查看更多</a>
             </el-col>
           </el-row>
@@ -91,11 +91,13 @@ import PostComment from './PostComment.vue'
 import person from '../assets/person.png'
 
 export default {
-  name: 'note-list',
+  // 我的收藏页面
+  name: 'collect-list',
   created() {
-    document.title = '我的收藏 类微博系统';
+    document.title = '我的收藏';
   },
   mounted() {
+    // 初始化我的收藏列表
     if (this.isLogin=='false') {
       this.$router.push({path: '/'});
     }
@@ -116,7 +118,9 @@ export default {
           message: response.data.description,
           type: 'success'
         });
-        _this.collectList = response.data.data;
+        for (var i = 0; i < response.data.data.length; i++) {
+          _this.collectList.push(response.data.data[i]);
+        }
       }
       else {
         _this.$message({
@@ -126,33 +130,18 @@ export default {
         });
       }
     })
-    .catch(function (response) {
-      _this.$message({
-          showClose: true,
-          type: 'error',
-          message: response
-        })
-    });
   },
   data () {
     return {
       addCommentFlag: false,
-      labelPosition: top,
-      searchQuery: '',
       page: 1,
-      imageUrl: 'http://wx3.sinaimg.cn/mw690/8235fbe6gy1fi3k0zfa5bj20y81f47wi.jpg',
       collectList: [],
-      form: {
-        desc: ''
-      },
-      rules: {
-        desc: [
-          { required: true, message: '请填写微博内容' }
-        ]
-      },
       commentList: [],
       commentPage:[],
-      isLogin: localStorage.getItem('isLogin')
+      commentAdd: [],
+      collectAdd: 0,
+      isLogin: localStorage.getItem('isLogin'),
+      delFlag: false
     }
   },
   components: {
@@ -164,6 +153,7 @@ export default {
     'fw-content': Fwcontent,
   },
   methods: {
+    // 收藏取消收藏方法
     addFavorite: function(item) {
       var _this = this;
       if (item.weiboisCollect != true) {
@@ -192,13 +182,6 @@ export default {
             });
           }
         })
-        .catch(function (response) {
-          _this.$message({
-              showClose: true,
-              type: 'error',
-              message: response
-            })
-        });
       }
       else {
         _this.$ajax({
@@ -217,6 +200,8 @@ export default {
             });
             item.weiboisCollect = false;
             item.weiboCollect--;
+            _this.collectAdd--;
+            _this.delFlag = true;
             for (var i = 0;i < _this.collectList.length;i++) {
               if (item.weiboId == _this.collectList[i].weiboId) {
                 _this.collectList.splice(i, 1);
@@ -231,20 +216,18 @@ export default {
             });
           }
         })
-        .catch(function (response) {
-          console.log(response);
-        });
       }
     },
+    // 加载更多评论
     loadmoreComments: function(item) {
       var _this = this;
       _this.$ajax({
         method: 'get',
         url: _this.URL_PREFIX + '/weibo/front/comment/getcomment',
         params: {
-          page: _this.commentPage[item.weiboId],
+          page: 2,
           weiboId: item.weiboId,
-          rows: 3
+          rows: (_this.commentPage[item.weiboId] - 1)*3 + _this.commentAdd[item.weiboId]
         }
       }).then(function(response) {
         if (response.data.code == 200) {
@@ -255,10 +238,18 @@ export default {
           else {
             _this.addCommentFlag = true;
           }
-          for (var i = 0;i < parsedata.rows.length;i++) {
-            _this.commentList.push(parsedata.rows[i]);
+          if (parsedata.rows.length > 3) {
+            for (var i = 0; i < 3; i++) {
+              _this.commentList.push(parsedata.rows[i]);
+            }
+            _this.commentPage[item.weiboId]++;
           }
-          _this.commentPage[item.weiboId]++;
+          else {
+            for (var i = 0; i < parsedata.rows.length; i++) {
+              _this.commentList.push(parsedata.rows[i]);
+            }
+            _this.commentPage[item.weiboId]++;
+          }
         }
         else {
           _this.$message({
@@ -268,20 +259,15 @@ export default {
           });
         }
       })
-      .catch(function (response) {
-        _this.$message({
-            showClose: true,
-            type: 'error',
-            message: response
-          })
-      });
     },
+    // 打开评论列表
     openComments: function(item) {
       if (item.open != false) {
         item.open=!item.open;
         var _this = this;
         if (!_this.commentPage[item.weiboId]) {
           _this.commentPage[item.weiboId] = 1;
+          _this.commentAdd[item.weiboId] = 0;
           _this.loadmoreComments(item);
         }
       }
@@ -289,11 +275,14 @@ export default {
         item.open=!item.open;
       }
     },
+    // 发表评论
     addComment: function(data, item) {
       this.commentList.unshift(data);
       this.addCommentFlag = true;
+      this.commentAdd[item.weiboId]++;
       item.weiboComment++;
     },
+    // 加载更多我的收藏
     loadmore: function() {
       var _this = this;
       _this.page++;
@@ -301,9 +290,9 @@ export default {
         method: 'get',
         url: _this.URL_PREFIX + '/weibo/front/allmarks',
         params: {
-          pageNum: _this.page,
+          pageNum: 2,
           userId: localStorage.getItem('userId'),
-          pageSize: 10
+          pageSize: (_this.page-1)*10+_this.collectAdd
         }
       }).then(function(response) {
         if (response.data.code == 200) {
@@ -312,8 +301,15 @@ export default {
             message: response.data.description,
             type: 'success'
           });
-          for (var i = 0;i < response.data.data.length;i++) {
-            _this.collectList.push(response.data.data[i]);
+          if (response.data.data.length > 10) {
+            for (var i = 0; i < 10; i++) {
+              _this.collectList.push(response.data.data[i]);
+            }
+          }
+          else {
+            for (var i = 0; i < response.data.data.length; i++) {
+              _this.collectList.push(response.data.data[i]);
+            }
           }
         }
         else {
@@ -324,13 +320,6 @@ export default {
           })
         }
       })
-      .catch(function (response) {
-        _this.$message({
-            showClose: true,
-            type: 'error',
-            message: response
-          })
-      });
     },
   }
 }

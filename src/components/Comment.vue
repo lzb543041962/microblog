@@ -7,8 +7,10 @@
 <script>
 
 export default {
+  // 转换表情组件
   name: 'comment',
   mounted() {
+    // 初始化过程中将文本内容里的表情文本转为表情图片
     if (this.content!=undefined) {
       this.$refs.part.innerHTML = this.replace_em(this.content);
     }
@@ -28,9 +30,6 @@ export default {
         this.$refs.part.innerHTML = this.replace_em(this.content);
       }
     }
-  },
-  components: {
-
   },
   methods: {
     replace_em(str){

@@ -43,14 +43,16 @@ import foot_bar from './Foot.vue'
 import left_bar from './LeftBar.vue'
 
 export default {
-  name: 'note-list',
+  // 关注列表组件
+  name: 'friends-list',
   created() {
-    document.title = '关注列表 类微博系统';
+    document.title = '关注列表';
   },
   mounted() {
     if (this.isLogin=='false') {
       this.$router.push({path: '/'});
     }
+    // 初始化关注列表
     var _this = this;
     _this.page = 1;
     _this.$ajax({
@@ -78,28 +80,11 @@ export default {
         });
       }
     })
-    .catch(function (response) {
-      _this.$message({
-          showClose: true,
-          type: 'error',
-          message: response
-        })
-    });
   },
   data () {
     return {
-      labelPosition: top,
-      searchQuery: '',
       page: 1,
       friendList: [],
-      form: {
-        desc: ''
-      },
-      rules: {
-        desc: [
-          { required: true, message: '请填写微博内容' }
-        ]
-      },
       delFlag: false,
       isLogin: localStorage.getItem('isLogin')
     }
@@ -110,6 +95,7 @@ export default {
     left_bar
   },
   methods: {
+    // 取消关注方法
     delFollows: function(id) {
       var _this = this;
       _this.$ajax({
@@ -141,14 +127,8 @@ export default {
           });
         }
       })
-      .catch(function (response) {
-        _this.$message({
-            showClose: true,
-            type: 'error',
-            message: response
-          })
-      });
     },
+    // 加载更多关注列表
     loadmore: function() {
       var _this = this;
       _this.page++;
@@ -179,13 +159,6 @@ export default {
           })
         }
       })
-      .catch(function (response) {
-        _this.$message({
-            showClose: true,
-            type: 'error',
-            message: response
-          })
-      });
     },
   }
 }

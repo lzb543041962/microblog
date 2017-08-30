@@ -51,7 +51,7 @@
                         </div>
                       </div>
                       <div class="comment-child" v-if="!item.open">
-                        <comment-post :pId="item.weiboId" :username="item.userName" @commentpost="addComment"></comment-post>
+                        <comment-post :pId="item.weiboId" :username="item.userName" @commentpost="addComment($event, item)"></comment-post>
                         <div class="comment-child-meta">
                           <div class="grid-content bg-purple" v-show="cItem.weiboId == item.weiboId" v-for="cItem in commentList" v-bind:key="cItem.date">
                             <div class="avatar">
@@ -113,9 +113,11 @@ import person from '../assets/person.png'
 import $ from 'jquery';
 
 export default {
-  name: 'note-list',
+  // 主题列表页面
+  name: 'topic-list',
   created() {
     var _this = this;
+    // 初始化表情
     for (let i = 1;i < 76;i++) {
       _this.faceList.push({
         name: i + '.gif',
@@ -124,8 +126,9 @@ export default {
     }
   },
   mounted() {
+    // 初始化微博列表
     this.getWeiboAll();
-    document.title = '主题 ' + _this.topic + ' 类微博系统';
+    document.title = '主题 ' + this.topic;
   },
   data () {
     var checkBlogContent = (rule, value, callback) => {
@@ -149,23 +152,6 @@ export default {
       fwItem: {},
       faceList: [],
       isFaceShow: false,
-      imageUrl: 'http://wx3.sinaimg.cn/mw690/8235fbe6gy1fi3k0zfa5bj20y81f47wi.jpg',
-      options: [{
-        value: 'news',
-        label: 'news'
-      }, {
-        value: '双皮奶',
-        label: '双皮奶'
-      }, {
-        value: '蚵仔煎',
-        label: '蚵仔煎'
-      }, {
-        value: '龙须面',
-        label: '龙须面'
-      }, {
-        value: '北京烤鸭',
-        label: '北京烤鸭'
-      }],
       themeValue: '',
       dialogVisible: false,
       dialogVisible2: false,
@@ -187,7 +173,9 @@ export default {
         ]
       },
       commentPage: [],
-      file: null
+      file: null,
+      weiboAdd: 0,
+      commentAdd: []
     }
   },
   components: {
@@ -210,13 +198,12 @@ export default {
     }
   },
   methods: {
-    getFile($event) {
-      this.file = $event.target.files[0];
-    },
+    // 点击转发按钮,存储原微博
     forward: function(item) {
       this.dialogVisibleFw = true;
       this.fwItem = item;
     },
+    // 获取微博列表
     getWeiboAll: function() {
       var _this = this;
       if (_this.attentionFlag == true) {
@@ -224,11 +211,21 @@ export default {
       }
       var data = {};
       var url = '';
-      data = {
-        weiboTopic: _this.$route.params.weiboTopic,
-        page: _this.page,
-        rows: 10,
-      };
+      if (_this.page==1) {
+        data = {
+          page: _this.page,
+          rows: 10,
+          weiboTopic: _this.$route.params.weiboTopic
+        };
+      }
+      else {
+        data = {
+          page: 2,
+          rows: (_this.page-1)*10+_this.weiboAdd,
+          weiboTopic: _this.$route.params.weiboTopic
+        };
+      }
+
       url = _this.URL_PREFIX + '/weibo/front/weibo/getWeiboByTopic';
 
       _this.$ajax({
@@ -244,17 +241,14 @@ export default {
           else {
             _this.addWeiboFlag = true;
           }
-          if (_this.page == 1) {
-            for (var i = 0;i < parseData.rows.length;i++) {
-              if (!parseData.rows[i].weiboRootId) {
-                parseData.rows[i].weiboRootId = -1;
-              }
+          if (parseData.rows.length > 10) {
+            for (var i = 0; i < 10; i++) {
+              _this.noteList.push(parseData.rows[i]);
             }
-            _this.noteList = parseData.rows;
             _this.page++;
           }
           else {
-            for (var i = 0;i < parseData.rows.length;i++) {
+            for (var i = 0; i < parseData.rows.length; i++) {
               _this.noteList.push(parseData.rows[i]);
             }
             _this.page++;
@@ -268,13 +262,6 @@ export default {
           });
         }
       })
-      .catch(function (response) {
-        _this.$message({
-            showClose: true,
-            type: 'error',
-            message: response
-          })
-      });
     },
     getWeiboAttentionPage: function() {
       var _this = this;
@@ -311,14 +298,8 @@ export default {
           });
         }
       })
-      .catch(function (response) {
-        _this.$message({
-            showClose: true,
-            type: 'error',
-            message: response
-          })
-      });
     },
+    // 删除微博
     delArticle: function(id) {
       var _this = this;
       _this.$ajax({
@@ -348,14 +329,8 @@ export default {
           });
         }
       })
-      .catch(function (response) {
-        _this.$message({
-            showClose: true,
-            type: 'error',
-            message: response
-          })
-      });
     },
+    // 收藏取消收藏方法
     addFavorite: function(item) {
       var _this = this;
       if (item.weiboisCollect != true) {
@@ -384,13 +359,6 @@ export default {
             });
           }
         })
-        .catch(function (response) {
-          _this.$message({
-              showClose: true,
-              type: 'error',
-              message: response
-            })
-        });
       }
       else {
         _this.$ajax({
@@ -418,15 +386,9 @@ export default {
             });
           }
         })
-        .catch(function (response) {
-          _this.$message({
-              showClose: true,
-              type: 'error',
-              message: response
-            })
-        });
       }
     },
+    // 点赞取消点赞方法
     thumbUp: function(item) {
       var _this = this;
       if (item.weiboisLike != true) {
@@ -455,13 +417,6 @@ export default {
             });
           }
         })
-        .catch(function (response) {
-          _this.$message({
-              showClose: true,
-              type: 'error',
-              message: response
-            })
-        });
       }
       else {
         _this.$ajax({
@@ -489,36 +444,22 @@ export default {
             });
           }
         })
-        .catch(function (response) {
-          _this.$message({
-              showClose: true,
-              type: 'error',
-              message: response
-            })
-        });
       }
     },
     addFace: function(val) {
       this.form.desc += val;
       this.isFaceShow = false;
     },
-    submitUpload() {
-      this.$refs.upload.submit();
-    },
-    handleChange(file, fileList) {
-      if (fileList.length > 9) {
-        this.fileList = fileList.shift();
-      }
-    },
+    // 加载更多评论
     loadmoreComments: function(item) {
       var _this = this;
       _this.$ajax({
         method: 'get',
         url: _this.URL_PREFIX + '/weibo/front/comment/getcomment',
         params: {
-          page: _this.commentPage[item.weiboId],
+          page: 2,
           weiboId: item.weiboId,
-          rows: 3
+          rows: (_this.commentPage[item.weiboId] - 1)*3 + _this.commentAdd[item.weiboId]
         }
       }).then(function(response) {
         if (response.data.code == 200) {
@@ -529,10 +470,18 @@ export default {
           else {
             _this.addCommentFlag = true;
           }
-          for (var i = 0;i < parsedata.rows.length;i++) {
-            _this.commentList.push(parsedata.rows[i]);
+          if (parsedata.rows.length > 3) {
+            for (var i = 0; i < 3; i++) {
+              _this.commentList.push(parsedata.rows[i]);
+            }
+            _this.commentPage[item.weiboId]++;
           }
-          _this.commentPage[item.weiboId]++;
+          else {
+            for (var i = 0; i < parsedata.rows.length; i++) {
+              _this.commentList.push(parsedata.rows[i]);
+            }
+            _this.commentPage[item.weiboId]++;
+          }
         }
         else {
           _this.$message({
@@ -542,20 +491,15 @@ export default {
           });
         }
       })
-      .catch(function (response) {
-        _this.$message({
-            showClose: true,
-            type: 'error',
-            message: response
-          })
-      });
     },
+    // 获取评论列表
     openComments: function(item) {
       if (item.open != false) {
         item.open=!item.open;
         var _this = this;
         if (!_this.commentPage[item.weiboId]) {
           _this.commentPage[item.weiboId] = 1;
+          _this.commentAdd[item.weiboId] = 0;
           _this.loadmoreComments(item);
         }
       }
@@ -563,13 +507,18 @@ export default {
         item.open=!item.open;
       }
     },
-    addComment: function(data) {
-      this.addCommentFlag = true;
+    // 发表评论
+    addComment: function(data, item) {
       this.commentList.unshift(data);
+      this.addCommentFlag = true;
+      this.commentAdd[item.weiboId]++;
+      item.weiboComment++;
     },
+    // 转发微博
     addforward: function (data, fwItem) {
       var _this = this;
       _this.addWeiboFlag = true;
+      _this.weiboAdd++;
       _this.dialogVisibleFw = false;
       for (var i = 0;i < _this.noteList.length;i++) {
         if (fwItem.weiboId == _this.noteList[i].weiboId) {
@@ -585,109 +534,12 @@ export default {
       }
       _this.noteList.unshift(data);
     },
-    confirmAt() {
-      this.dialogVisible = false;
-      for (var i = 0;i < this.multipleSelection.length;i++) {
-        this.form.desc+='@' + this.multipleSelection[i].name + ' ';
-      }
-      this.$refs.multipleTable.clearSelection();
-    },
     confirmTheme() {
       this.dialogVisible2 = false;
       this.form.desc = '#' + this.themeValue + '#' + this.form.desc;
       this.themeValue = '';
     },
-    toggleSelection(rows) {
-      if (rows) {
-        rows.forEach(row => {
-          this.$refs.multipleTable.toggleRowSelection(row);
-        });
-      } else {
-        this.$refs.multipleTable.clearSelection();
-      }
-    },
-    handleSelectionChange(val) {
-      this.multipleSelection = val;
-    },
-    submitForm(formName) {
-      var _this = this;
-      _this.$refs[formName].validate((valid) => {
-        if (valid) {
-          if (_this.form.desc!='') {
-            var content = _this.form.desc;
-            _this.form.desc = '';
-            var at = [];
-            var theme = '';
-
-            if (content[0] == '#') {
-              var end;
-              for (var i = 1;i < content.length;i++) {
-                if (content[i] == '#') {
-                  end = i;
-                  break;
-                }
-              }
-              theme = content.split('').slice(1,end).join('');
-              content = content.replace('#'+theme+'#', '');
-            }
-
-            for (var i = 0;content.indexOf('@')!=-1;i++) {
-              var idx = content.indexOf('@');
-              var end;
-              for (var j = idx;j < content.length;j++) {
-                if (content[j] == ' ') {
-                  end = j;
-                  break;
-                }
-              }
-              at[i] = content.split('').slice(idx+1,end).join('');
-              var addat = '@' + at[i];
-              while (content.indexOf(addat) >= 0){
-                content = content.replace(addat, '');
-              }
-            }
-
-            var formData = new FormData();
-            formData.append('userId', localStorage.getItem('userId'));
-            formData.append('file', _this.file);
-            formData.append('weiboContent', content);
-            formData.append('weiboAt', at.join('@'));
-            formData.append('weiboTopic', theme);
-
-            var config = {
-              headers: {
-                'Content-Type': 'multipart/form-data'
-              }
-            }
-
-            _this.$ajax.post(_this.URL_PREFIX + '/front/weibo/postWeibo',formData,config)
-            .then(function(response) {
-              if (response.data.code == 200) {
-                var parsedata = JSON.parse(response.data.data);
-                parsedata.weiboRootId = -1;
-                _this.noteList.unshift(parsedata);
-              }
-              else {
-                _this.$message({
-                  showClose: true,
-                  message: response.data.description,
-                  type: 'error'
-                });
-              }
-            })
-            .catch(function (response) {
-              _this.$message({
-                  showClose: true,
-                  type: 'error',
-                  message: response
-                })
-            });
-          } else {
-            return false;
-          }
-        }
-      })
-    },
+    // 回到顶部
     toTop() {
       document.body.scrollTop = document.documentElement.scrollTop = 0;
     }
@@ -702,7 +554,7 @@ export default {
   width: 100%;
 }
 .login-main {
-  min-height: calc(100% - 60px - 5rem);
+  min-height: calc(100% - 60px);
   width: 100%;
 }
 .page-content article {

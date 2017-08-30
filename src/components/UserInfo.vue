@@ -51,14 +51,16 @@ import foot_bar from './Foot.vue'
 import left_bar from './LeftBar.vue'
 
 export default {
+  // 个人资料页面
   name: 'user-info',
   created() {
-    document.title = '个人资料 类微博系统';
+    document.title = '个人资料';
   },
   mounted() {
     if (this.isLogin=='false') {
       this.$router.push({path: '/'});
     }
+    // 初始化个人信息
     var _this = this;
     _this.$ajax({
       method: 'get',
@@ -76,13 +78,6 @@ export default {
         _this.form = JSON.parse(response.data.data);
       }
     })
-    .catch(function (response) {
-      _this.$message({
-          showClose: true,
-          type: 'error',
-          message: response
-        })
-    });
   },
   data() {
     var checkBlogContent = (rule, value, callback) => {
@@ -130,23 +125,20 @@ export default {
     left_bar
   },
   methods: {
+    // 获取头像文件
     getFile($event) {
       this.file = $event.target.files[0];
     },
     submitForm(formName) {
       var _this = this;
+
       var formData = new FormData();
       formData.append('userId', localStorage.getItem('userId'));
       formData.append('file', _this.file);
       formData.append('sex', _this.form.userSex);
       formData.append('introduce', _this.form.userIntroduce);
       formData.append('username', _this.form.userName);
-      // var data = {
-      //   userId: localStorage.getItem('userId'),
-      //   sex: _this.form.userSex,
-      //   introduce: _this.form.userIntroduce,
-      //   username: _this.form.userName
-      // };
+
       _this.$refs[formName].validate((valid) => {
         if (valid) {
           _this.$ajax({
@@ -177,13 +169,6 @@ export default {
               });
             }
           })
-          .catch(function (response) {
-            _this.$message({
-                showClose: true,
-                type: 'error',
-                message: response
-              })
-          });
         }
       })
     },

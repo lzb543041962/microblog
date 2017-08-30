@@ -29,15 +29,18 @@
 
 <script>
 export default {
+  // 转发表单组件
   name: 'fw-form',
   created() {
     var _this = this;
+    // 加载表情
     for (let i = 1;i < 76;i++) {
       _this.faceList.push({
         name: i + '.gif',
         value: '[em_' + i + ']'
       });
     }
+    // 获取原微博主题和@
     if (_this.article.weiboTopic!='') {
       _this.formFw.desc = '#' + _this.article.weiboTopic + '#';
     }
@@ -115,6 +118,7 @@ export default {
               var at = [];
               var theme = '';
 
+              // 主题过滤
               if (content[0] == '#') {
                 var end = 0;
                 for (var i = 1; i < content.length; i++) {
@@ -129,6 +133,7 @@ export default {
                 }
               }
 
+              // @过滤
               for (var i = 0; content.indexOf('@') != -1; i++) {
                 var idx = content.indexOf('@');
                 var end = 0;
@@ -167,7 +172,7 @@ export default {
                   weiboParentId: _this.article.weiboId,
                   weiboFwContent: content,
                   weiboAt: at.join('@'),
-                  weiboTopic: theme,
+                  weiboTopic: theme.trim(),
                 }
               }
 
@@ -194,13 +199,6 @@ export default {
                   });
                 }
               })
-              .catch(function (response) {
-                _this.$message({
-                    showClose: true,
-                    type: 'error',
-                    message: response
-                  })
-              });
             } else {
               return false;
             }

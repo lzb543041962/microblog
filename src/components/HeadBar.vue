@@ -12,7 +12,7 @@
       <el-badge is-dot class="item" v-show="isLogin=='true'" v-if="messageUnRead == 'true'">
         <el-menu-item index="/message"><a @click="readMessage"><div>消息</div></a></el-menu-item>
       </el-badge>
-      <el-badge class="item" v-show="isLogin=='true'">
+      <el-badge class="item" v-show="isLogin=='true'" v-if="messageUnRead == 'false'">
         <el-menu-item index="/message"><a @click="readMessage"><div>消息</div></a></el-menu-item>
       </el-badge>
       <!-- <el-menu-item index="5" class="logo-item"><div><img src="../assets/chinanetcenter.png"></div></el-menu-item> -->
@@ -25,6 +25,7 @@
 import LoginForm from '@/components/LoginForm'
 
 export default {
+  // 头部导航栏组件
   name: 'header-wrapper',
   data () {
     return {

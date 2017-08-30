@@ -52,11 +52,11 @@ import Comment from './Comment.vue'
 import {formatDate} from '@/filter/formatDate.js';
 
 export default {
+  // 转发内容组件
   name: 'fw-content',
   data () {
     return {
       item: this.data,
-      imageUrl: 'http://wx3.sinaimg.cn/mw690/8235fbe6gy1fi3k0zfa5bj20y81f47wi.jpg',
     }
   },
   props: {

@@ -48,12 +48,14 @@ import head_bar from './HeadBar.vue'
 import foot_bar from './Foot.vue'
 
 export default {
+  // 登录注册组件
   name: 'login-form',
   created() {
     this.createCode();
   },
   data() {
     var that = this;
+    // 用户名、昵称以及密码正则校验
     var checkLoginname = (rule, value, callback) => {
       if (value === '') {
         return callback(new Error('请输入用户名'));
@@ -227,13 +229,6 @@ export default {
                   }, 500);
                 }
               })
-              .catch(function (response) {
-                _this.$message({
-                    showClose: true,
-                    type: 'error',
-                    message: response
-                  })
-              });
             }
             else {
               _this.$message({
@@ -242,13 +237,6 @@ export default {
                 type: 'error'
               });
             }
-          })
-          .catch(function (response) {
-            _this.$message({
-                showClose: true,
-                type: 'error',
-                message: response
-              })
           });
         } else {
           _this.$message({
@@ -290,13 +278,6 @@ export default {
               });
             }
           })
-          .catch(function (response) {
-            _this.$message({
-                showClose: true,
-                type: 'error',
-                message: response
-              })
-          });
         }
         else {
           _this.createCode();
@@ -315,6 +296,7 @@ export default {
       this.$refs[formName1].resetFields();
       this.$refs[formName2].resetFields();
     },
+    // 生成简易验证码
     createCode: function() {
       this.checkcode = '';
       var codeLength = 4;
